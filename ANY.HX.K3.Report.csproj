@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8B4781AE-8E3D-41E0-8603-0DAC28E73500}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ANY.HX.K3.Report</RootNamespace>
+    <AssemblyName>ANY.HX.K3.Report</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\K3cloud7.6\WebSite\bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Kingdee.BOS">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.BOS.App">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.App.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.BOS.Contracts">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.Contracts.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.BOS.Core">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.BOS.DataEntity">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.DataEntity.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.App">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.App.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.App.Core">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.App.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.Core">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.GL.App.Core">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.App.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.GL.App.Report">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.App.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.GL.Common.BusinessEntity">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.Common.BusinessEntity.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.GL.Common.Core">
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.Common.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AnyAccountBookInfor.cs" />
+    <Compile Include="AnyDetailFilterParams.cs" />
+    <Compile Include="AnyQueryVoucherEntity.cs" />
+    <Compile Include="AnyReportCommonFunction.cs" />
+    <Compile Include="AnyReportSearchType.cs" />
+    <Compile Include="AnyRptSystemParamInfor.cs" />
+    <Compile Include="AnyMulAcctBookDetailFilterParams.cs" />
+    <Compile Include="AnySaleProfitReport.cs" />
+    <Compile Include="ProfitReportService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
