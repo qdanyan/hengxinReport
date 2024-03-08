@@ -114,7 +114,7 @@ namespace ANY.HX.K3.Report
                 /*dialect*/SELECT
 	                ROW_NUMBER ( ) OVER ( ORDER BY ( SELECT NULL ) ) AS FIDENTITYID,
 	                A.FNAME AS ACCOUNTNAME, C.FNAME AS CUSTOMER, H.FNAME AS SALEMAN,
-	                D.FNAME AS FDEPT,
+	                D.FNAME AS FDEPT,E.FNAME AS FEXPENSE,
                 CASE
 		                WHEN A.FNAME = '主营业务收入' THEN
 		                ISNULL( SUM ( I.FDEBIT ), 0 ) 
@@ -133,12 +133,13 @@ namespace ANY.HX.K3.Report
 	                LEFT JOIN T_BD_CUSTOMER_L C ON ( C.FCUSTID= F.FFLEX6 AND C.FLOCALEID= 2052 )
 	                LEFT JOIN T_BD_OPERATORENTRY_L H ON ( H.FENTRYID=F.FF100006 AND H.FLOCALEID= 2052 )
 	                LEFT JOIN T_BD_DEPARTMENT_L D ON ( D.FDEPTID= F.FFLEX5 AND D.FLOCALEID= 2052 )
-	                LEFT JOIN T_BD_ACCOUNT_L A ON ( A.FACCTID= I.FACCOUNTID AND A.FLOCALEID= 2052 ) 
+                    LEFT JOIN T_BD_EXPENSE_L E ON ( E.FEXPID= F.FFLEX9 AND E.FLOCALEID= 2052 )
+	                LEFT JOIN T_BD_ACCOUNT_L A ON ( A.FACCTID= I.FACCOUNTID AND A.FLOCALEID= 2052 )
                 WHERE
 	                FYEAR = {1} 
 	                AND FPERIOD = {2} 
 	                AND FACCOUNTID IN ( 4075, 4080, 4083, 148657 ) {3}
-                GROUP BY A.FNAME, I.FACCOUNTID, C.FNAME, H.FNAME, D.FNAME", tableName, year, period, addcOnditions);
+                GROUP BY A.FNAME, I.FACCOUNTID, C.FNAME, H.FNAME, D.FNAME,E.FNAME", tableName, year, period, addcOnditions);
 
             DBUtils.ExecuteDynamicObject(this.Context, strCreateTable);
 
@@ -345,6 +346,8 @@ namespace ANY.HX.K3.Report
 
 
 
+                
+
             ////FDEPT
             //field = new TextField();
             //field.Key = "FDEPT";
@@ -383,6 +386,15 @@ namespace ANY.HX.K3.Report
             SettingField settingAccount = PivotReportSettingInfo.CreateColumnSettingField(field, 0);
             this.SettingInfo.ColTitleFields.Add(settingAccount);
             this.SettingInfo.SelectedFields.Add(settingAccount);
+
+            //EXPENSE
+            field = new TextField();
+            field.Key = "FEXPENSE";
+            field.FieldName = "FEXPENSE";
+            field.Name = new LocaleValue("费用项目");
+            SettingField settingExpense = PivotReportSettingInfo.CreateColumnSettingField(field, 0);
+            this.SettingInfo.ColTitleFields.Add(settingExpense);
+            this.SettingInfo.SelectedFields.Add(settingExpense);
 
             //构造数据
             fieldData = new DecimalField();
