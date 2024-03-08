@@ -26,7 +26,9 @@ using Kingdee.K3.FIN.GL.Common.BusinessEntity;
 using Kingdee.K3.FIN.GL.Common.Core;
 using Kingdee.K3.FIN.GL.App.Report;
 using System.Net;
-
+using static Kingdee.BOS.Core.Const.BOSConst;
+using System.Runtime.InteropServices.ComTypes;
+using Kingdee.BOS.Core.Metadata.Util;
 
 namespace ANY.HX.K3.Report
 {
@@ -34,6 +36,17 @@ namespace ANY.HX.K3.Report
     [Kingdee.BOS.Util.HotUpdate]
     public class AnySaleProfitReport: SysReportBaseService
     {
+
+        private string year;
+        private string period;
+        private string currency;
+        private string currencyCondition;
+        private string detail;
+        private int saleSeq=0;
+        private int customerSeq=0;
+        private int deptSeq=0;
+        private bool notPostVercher;
+        private string addcOnditions;
 
         public override void Initialize()
 
@@ -61,9 +74,42 @@ namespace ANY.HX.K3.Report
             return result;
         }
 
+
+        private void InitFilter(DynamicObject param)
+        {
+            string currency = Convert.ToString(param["F_ANY_Currency"]);
+            DateTime fDate = Convert.ToDateTime(param["F_ANY_Date"]);
+            DynamicObject detailObject = param["F_ANY_Detail"] as DynamicObject;
+            detail = Convert.ToString(detailObject["Name"]);
+            notPostVercher = Convert.ToBoolean(param["F_ANY_NOTPOSTVOUCHER"]);
+            if (!notPostVercher)
+            {
+                addcOnditions = " AND V.FPOSTED='1'";
+            }
+            else
+            {
+                addcOnditions = " ";
+            }
+
+            year = fDate.Year.ToString();
+            period = fDate.Month.ToString();
+            if (currency == "RMB")
+            {
+                currencyCondition = " AND I.FCURRENCYID = 1";
+            }
+            else
+            {
+                currencyCondition = " ";
+            }
+            addcOnditions += currencyCondition;
+        }
+
         public override void BuilderReportSqlAndTempTable(IRptParams filter, string tableName)
 
         {
+            DynamicObject customFilter = filter.FilterParameter.CustomFilter;
+            InitFilter(customFilter);
+
             string strCreateTable = string.Format(@"
                 /*dialect*/SELECT
 	                ROW_NUMBER ( ) OVER ( ORDER BY ( SELECT NULL ) ) AS FIDENTITYID,
@@ -76,6 +122,8 @@ namespace ANY.HX.K3.Report
 		                ISNULL( SUM ( I.FCREDIT ), 0 ) 
 		                WHEN A.FNAME = '销售费用' THEN
 		                ISNULL( SUM ( I.FDEBIT ), 0 ) 
+		                WHEN A.FNAME = '管理费用' THEN
+		                ISNULL( SUM ( I.FDEBIT ), 0 )
 	                END AS Amount 
                 INTO {0}
                 FROM
@@ -87,48 +135,125 @@ namespace ANY.HX.K3.Report
 	                LEFT JOIN T_BD_DEPARTMENT_L D ON ( D.FDEPTID= F.FFLEX5 AND D.FLOCALEID= 2052 )
 	                LEFT JOIN T_BD_ACCOUNT_L A ON ( A.FACCTID= I.FACCOUNTID AND A.FLOCALEID= 2052 ) 
                 WHERE
-	                FYEAR = 2023 
-	                AND FPERIOD = 9 
-	                AND FACCOUNTID IN ( 4075, 4080, 4083 ) 
-                GROUP BY A.FNAME, I.FACCOUNTID, C.FNAME, H.FNAME, D.FNAME", tableName);
+	                FYEAR = {1} 
+	                AND FPERIOD = {2} 
+	                AND FACCOUNTID IN ( 4075, 4080, 4083, 148657 ) {3}
+                GROUP BY A.FNAME, I.FACCOUNTID, C.FNAME, H.FNAME, D.FNAME", tableName, year, period, addcOnditions);
 
             DBUtils.ExecuteDynamicObject(this.Context, strCreateTable);
 
+#region 拆分费用
+            string detailCategory = string.Empty;
+            switch (detail)
+            {
+                case "销售员":
+                    detailCategory = "SALEMAN";
+                    customerSeq = 1;
+                    deptSeq = 2;
+                    break;
+                case "客户":
+                    detailCategory = "CUSTOMER";
+                    saleSeq = 1;
+                    deptSeq = 2;
+                    break;
+                case "部门":
+                    detailCategory = "FDEPT";
+                    saleSeq = 1;
+                    customerSeq = 2;
+                    break;
+                default:
+                    throw new Exception("未知的拆分类型: " + detail);
+            }
 
-            //业务员为空的销售费用
-            string emptySalesmanCostSql = string.Format(@"
+            string emptyCostSql = string.Format(@"
                 SELECT SUM(Amount) as TotalCost 
                 FROM {0} 
-                WHERE SALEMAN IS NULL AND ACCOUNTNAME = '销售费用'", tableName);
-            
-            double totalEmptySalesmanCost = Convert.ToDouble(DBUtils.ExecuteScalar(this.Context, emptySalesmanCostSql, 0));
-            
-            //业务员不为空的销售费用
+                WHERE {1} IS NULL AND ACCOUNTNAME = '销售费用'", tableName, detailCategory);
+            double totalEmptyCost = Convert.ToDouble(DBUtils.ExecuteScalar(this.Context, emptyCostSql, 0));
+
+            //管理费用
+            string adminCostSql = string.Format(@"
+                SELECT SUM(Amount) as TotalCost 
+                FROM {0} 
+                WHERE {1} IS NULL AND ACCOUNTNAME = '管理费用'", tableName, detailCategory);
+            double totalAdminCost = Convert.ToDouble(DBUtils.ExecuteScalar(this.Context, adminCostSql, 0));
+
+            //计算主营业务收入
             string totalIncomeSql = string.Format(@"
                 SELECT SUM(Amount) as TotalIncome 
                 FROM {0} 
-                WHERE SALEMAN IS NOT NULL AND ACCOUNTNAME = '主营业务收入'", tableName);
-                        double totalIncome = Convert.ToDouble(DBUtils.ExecuteScalar(this.Context, totalIncomeSql, 0));
+                WHERE {1} IS NOT NULL AND ACCOUNTNAME = '主营业务收入'", tableName, detailCategory);
+            double totalIncome = Convert.ToDouble(DBUtils.ExecuteScalar(this.Context, totalIncomeSql, 0));
 
-            string salesmanIncomeSql = string.Format(@"
-                SELECT SALEMAN, SUM(Amount) as SalesmanIncome 
+            string categoryIncomeSql = string.Format(@"
+                SELECT {1}, SUM(Amount) as CategoryIncome 
                 FROM {0} 
-                WHERE SALEMAN IS NOT NULL AND ACCOUNTNAME = '主营业务收入'
-                GROUP BY SALEMAN", tableName);
-            DataTable dtSalesmanIncome = DBUtils.ExecuteDataSet(this.Context, salesmanIncomeSql).Tables[0];
+                WHERE {1} IS NOT NULL AND ACCOUNTNAME = '主营业务收入'
+                GROUP BY {1}", tableName, detailCategory);
+            DataTable dtCategoryIncome = DBUtils.ExecuteDataSet(this.Context, categoryIncomeSql).Tables[0];
 
-            foreach (DataRow row in dtSalesmanIncome.Rows)
+
+            //销售费用分摊
+            foreach (DataRow row in dtCategoryIncome.Rows)
             {
-                string salesMan = row["SALEMAN"].ToString();
-                double salesManIncome = Convert.ToDouble(row["SalesmanIncome"]);
-                double shareCost = totalEmptySalesmanCost * (salesManIncome / totalIncome);
+                string category = row[detailCategory].ToString();
+                double categoryIncome = Convert.ToDouble(row["CategoryIncome"]);
+                double shareCost = totalEmptyCost * (categoryIncome / totalIncome);
 
                 string insertSql = string.Format(@"
-                    INSERT INTO {0} (FIDENTITYID, ACCOUNTNAME, SALEMAN, FDEPT, Amount)
-                    VALUES ((SELECT ISNULL(MAX(FIDENTITYID), 0) + 1 FROM {0}), '分摊费用', '{1}', '', {2})",
-                    tableName, salesMan, shareCost);
+                    INSERT INTO {0} (FIDENTITYID, ACCOUNTNAME, {1}, Amount)
+                    VALUES ((SELECT ISNULL(MAX(FIDENTITYID), 0) + 1 FROM {0}), '销售费用分摊', '{2}', {3})",
+                    tableName, detailCategory, category, shareCost);
                 DBUtils.Execute(this.Context, insertSql);
             }
+
+            //管理费用分摊
+            foreach (DataRow row in dtCategoryIncome.Rows)
+            {
+                string category = row[detailCategory].ToString();
+                double categoryIncome = Convert.ToDouble(row["CategoryIncome"]);
+                double shareCost = totalAdminCost * (categoryIncome / totalIncome);
+
+                string insertSql = string.Format(@"
+                    INSERT INTO {0} (FIDENTITYID, ACCOUNTNAME, {1}, Amount)
+                    VALUES ((SELECT ISNULL(MAX(FIDENTITYID), 0) + 1 FROM {0}), '管理费用分摊', '{2}', {3})",
+                    tableName, detailCategory, category, shareCost);
+                DBUtils.Execute(this.Context, insertSql);
+            }
+#endregion
+
+#region 主营业务成本拆分
+            string mainCostSql = string.Format(@"
+                SELECT SUM(Amount) as TotalCost 
+                FROM {0} 
+                WHERE {1} IS NULL AND ACCOUNTNAME = '主营业务成本'", tableName, detailCategory);
+            double totalMainCost = Convert.ToDouble(DBUtils.ExecuteScalar(this.Context, mainCostSql, 0));
+
+            // 使用之前计算的 totalIncome
+            double totalMainIncome = totalIncome;
+
+            string categoryMainIncomeSql = string.Format(@"
+                SELECT {1}, SUM(Amount) as CategoryIncome 
+                FROM {0} 
+                WHERE {1} IS NOT NULL AND ACCOUNTNAME = '主营业务收入'
+                GROUP BY {1}", tableName, detailCategory);
+            DataTable dtCategoryMainIncome = DBUtils.ExecuteDataSet(this.Context, categoryMainIncomeSql).Tables[0];
+
+            foreach (DataRow row in dtCategoryMainIncome.Rows)
+            {
+                string category = row[detailCategory].ToString();
+                double categoryIncome = Convert.ToDouble(row["CategoryIncome"]);
+                double shareCost = totalMainCost * (categoryIncome / totalMainIncome);
+
+                string insertSql = string.Format(@"
+                    INSERT INTO {0} (FIDENTITYID, ACCOUNTNAME, {1}, Amount)
+                    VALUES ((SELECT ISNULL(MAX(FIDENTITYID), 0) + 1 FROM {0}), '主营业务成本分摊', '{2}', {3})",
+                    tableName, detailCategory, category, shareCost);
+                DBUtils.Execute(this.Context, insertSql);
+            }
+#endregion
+
+
 
             string strProfitSql = string.Format(@"
                 INSERT INTO {0} (FIDENTITYID, ACCOUNTNAME, CUSTOMER, SALEMAN, FDEPT, Amount)
@@ -137,43 +262,117 @@ namespace ANY.HX.K3.Report
                 (SUM(CASE WHEN ACCOUNTNAME = '主营业务收入' THEN Amount ELSE 0 END) -
                 SUM(CASE WHEN ACCOUNTNAME = '主营业务成本' THEN Amount ELSE 0 END) -
                 SUM(CASE WHEN ACCOUNTNAME = '销售费用' THEN Amount ELSE 0 END) -
-                SUM(CASE WHEN ACCOUNTNAME = '分摊费用' THEN Amount ELSE 0 END))
+                SUM(CASE WHEN ACCOUNTNAME = '管理费用' THEN Amount ELSE 0 END) -
+                SUM(CASE WHEN ACCOUNTNAME = '管理费用分摊' THEN Amount ELSE 0 END) -
+                SUM(CASE WHEN ACCOUNTNAME = '主营业务成本分摊' THEN Amount ELSE 0 END) -
+                SUM(CASE WHEN ACCOUNTNAME = '销售费用分摊' THEN Amount ELSE 0 END))
                 FROM {0} T
                 GROUP BY T.CUSTOMER, T.SALEMAN, T.FDEPT", tableName);
-                        DBUtils.ExecuteDynamicObject(this.Context, strProfitSql);
+            DBUtils.ExecuteDynamicObject(this.Context, strProfitSql);
+
+            //计算毛利
+            string strGrossProfitSql = string.Format(@"
+                INSERT INTO {0} (FIDENTITYID, ACCOUNTNAME, CUSTOMER, SALEMAN, FDEPT, Amount)
+                SELECT (SELECT ISNULL(MAX(FIDENTITYID), 0) + 1 FROM {0}), 
+                '毛利', T.CUSTOMER, T.SALEMAN, T.FDEPT,
+                (SUM(CASE WHEN ACCOUNTNAME = '主营业务收入' THEN Amount ELSE 0 END) -
+                SUM(CASE WHEN ACCOUNTNAME = '主营业务成本' THEN Amount ELSE 0 END) -
+                SUM(CASE WHEN ACCOUNTNAME = '主营业务成本分摊' THEN Amount ELSE 0 END))
+                FROM {0} T
+                GROUP BY T.CUSTOMER, T.SALEMAN, T.FDEPT", tableName);
+            DBUtils.ExecuteDynamicObject(this.Context, strGrossProfitSql);
+
+            string[] old_names = new string[] { "主营业务收入", "主营业务成本", "主营业务成本分摊", "毛利", "销售费用", "销售费用分摊", "管理费用", "管理费用分摊", "利润" };
+            string[] new_names = new string[] { "6001 主营业务收入", "6401 主营业务成本", "6401.01 主营业务成本分摊", "6401.02 毛利", "6601 销售费用", "6601.01 销售费用分摊", "6602 管理费用", "6602.01 管理费用分摊", "6666 利润" };
+
+            for (int i = 0; i < old_names.Length; i++)
+            {
+                string updateSql = string.Format("UPDATE {0} SET ACCOUNTNAME = '{1}' WHERE ACCOUNTNAME = '{2}'", tableName, new_names[i], old_names[i]);
+                DBUtils.Execute(this.Context, updateSql);
+            }
 
 
             DataTable reportSouce = DBUtils.ExecuteDataSet(this.Context, string.Format("SELECT * FROM {0}", tableName)).Tables[0];
+            
+            
             this.SettingInfo = new PivotReportSettingInfo();
             TextField field;
             DecimalField fieldData;
             //构造透视表列
-            //CUSTOMER
-            field = new TextField();
-            field.Key = "CUSTOMER";
-            field.FieldName = "CUSTOMER";
-            field.Name = new LocaleValue("客户");
-            SettingField settingBillNo = PivotReportSettingInfo.CreateColumnSettingField(field, 0);
-            this.SettingInfo.RowTitleFields.Add(settingBillNo);
-            this.SettingInfo.SelectedFields.Add(settingBillNo);
 
-            //SALEMAN
-            field = new TextField();
-            field.Key = "SALEMAN";
-            field.FieldName = "SALEMAN";
-            field.Name = new LocaleValue("业务员");
-            SettingField settingSaleman = PivotReportSettingInfo.CreateColumnSettingField(field, 0);
-            this.SettingInfo.RowTitleFields.Add(settingSaleman);
-            this.SettingInfo.SelectedFields.Add(settingSaleman);
+            Dictionary<string, SettingField> settings = new Dictionary<string, SettingField>();
+            List<string> order = new List<string>();
 
-            //FDEPT
-            field = new TextField();
-            field.Key = "FDEPT";
-            field.FieldName = "FDEPT";
-            field.Name = new LocaleValue("部门");
-            SettingField settingDept = PivotReportSettingInfo.CreateColumnSettingField(field, 0);
-            this.SettingInfo.RowTitleFields.Add(settingDept);
-            this.SettingInfo.SelectedFields.Add(settingDept);
+            // 创建设置
+            settings["FDEPT"] = CreateSettingField("FDEPT", "部门", deptSeq);
+            settings["SALEMAN"] = CreateSettingField("SALEMAN", "销售员", saleSeq);
+            settings["CUSTOMER"] = CreateSettingField("CUSTOMER", "客户", customerSeq);
+
+            // 确定添加顺序
+            switch (detail)
+            {
+                case "销售员":
+                    order = new List<string> { "SALEMAN", "FDEPT", "CUSTOMER" };
+                    break;
+                case "客户":
+                    order = new List<string> { "CUSTOMER", "SALEMAN", "FDEPT" };
+                    break;
+                case "部门":
+                    order = new List<string> { "FDEPT", "SALEMAN", "CUSTOMER" };
+                    break;
+                default:
+                    throw new Exception("未知的细节类型: " + detail);
+            }
+
+            // 根据顺序添加设置
+            foreach (string key in order)
+            {
+                this.SettingInfo.RowTitleFields.Add(settings[key]);
+                this.SettingInfo.SelectedFields.Add(settings[key]);
+            }
+
+            // 创建设置的辅助方法
+            SettingField CreateSettingField(string key, string name, int seq)
+            {
+                TextField field = new TextField
+                {
+                    Key = key,
+                    FieldName = key,
+                    Name = new LocaleValue(name)
+                };
+                return PivotReportSettingInfo.CreateColumnSettingField(field, seq);
+            }
+
+
+
+            ////FDEPT
+            //field = new TextField();
+            //field.Key = "FDEPT";
+            //field.FieldName = "FDEPT";
+            //field.Name = new LocaleValue("部门");
+            //SettingField settingDept = PivotReportSettingInfo.CreateColumnSettingField(field, deptSeq);
+            //this.SettingInfo.RowTitleFields.Add(settingDept);
+            //this.SettingInfo.SelectedFields.Add(settingDept);
+
+            ////SALEMAN
+            //field = new TextField();
+            //field.Key = "SALEMAN";
+            //field.FieldName = "SALEMAN";
+            //field.Name = new LocaleValue("业务员");
+            //SettingField settingSaleman = PivotReportSettingInfo.CreateColumnSettingField(field, saleSeq);
+            //this.SettingInfo.RowTitleFields.Add(settingSaleman);
+            //this.SettingInfo.SelectedFields.Add(settingSaleman);
+
+            ////CUSTOMER
+            //field = new TextField();
+            //field.Key = "CUSTOMER";
+            //field.FieldName = "CUSTOMER";
+            //field.Name = new LocaleValue("客户");
+            //SettingField settingBillNo = PivotReportSettingInfo.CreateColumnSettingField(field, customerSeq);
+            //this.SettingInfo.RowTitleFields.Add(settingBillNo);
+            //this.SettingInfo.SelectedFields.Add(settingBillNo);
+
+
 
 
             //构造行
