@@ -77,15 +77,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnyAccountBookInfor.cs" />
-    <Compile Include="AnyDetailFilterParams.cs" />
-    <Compile Include="AnyQueryVoucherEntity.cs" />
-    <Compile Include="AnyReportCommonFunction.cs" />
-    <Compile Include="AnyReportSearchType.cs" />
-    <Compile Include="AnyRptSystemParamInfor.cs" />
-    <Compile Include="AnyMulAcctBookDetailFilterParams.cs" />
     <Compile Include="AnySaleProfitReport.cs" />
-    <Compile Include="ProfitReportService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
