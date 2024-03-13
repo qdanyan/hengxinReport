@@ -1,5 +1,3 @@
-E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.csproj.AssemblyReference.cache
-E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.csproj.CoreCompileInputs.cache
 E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\ANY.HX.K3.Report.dll
 E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\ANY.HX.K3.Report.pdb
 E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\Kingdee.BOS.App.dll
@@ -150,8 +148,10 @@ E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\ServiceStack.Text.pdb
 E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\ServiceStack.Text.xml
 E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\AWSSDK.xml
 E:\C#Project\HX\ANY.HX.K3.Report\bin\Debug\DevExpress.XtraPrinting.v13.1.xml
+E:\K3cloud7.6\WebSite\bin\ANY.HX.K3.Report.dll
+E:\K3cloud7.6\WebSite\bin\ANY.HX.K3.Report.pdb
+E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.csproj.AssemblyReference.cache
+E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.csproj.CoreCompileInputs.cache
 E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.csproj.CopyComplete
 E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.dll
 E:\C#Project\HX\ANY.HX.K3.Report\obj\Debug\ANY.HX.K3.Report.pdb
-E:\K3cloud7.6\WebSite\bin\ANY.HX.K3.Report.dll
-E:\K3cloud7.6\WebSite\bin\ANY.HX.K3.Report.pdb

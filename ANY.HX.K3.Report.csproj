@@ -47,11 +47,27 @@
     <Reference Include="Kingdee.BOS.DataEntity">
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.DataEntity.dll</HintPath>
     </Reference>
+    <Reference Include="Kingdee.BOS.ServiceHelper, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.BOS.ServiceHelper.dll</HintPath>
+    </Reference>
     <Reference Include="Kingdee.K3.FIN.App">
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.App.dll</HintPath>
     </Reference>
     <Reference Include="Kingdee.K3.FIN.App.Core">
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.App.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.CN.App.Core, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.CN.App.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.CN.App.Report, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.CN.App.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.CN.Business.PlugIn, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.CN.Business.PlugIn.dll</HintPath>
     </Reference>
     <Reference Include="Kingdee.K3.FIN.Core">
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.Core.dll</HintPath>
@@ -68,6 +84,10 @@
     <Reference Include="Kingdee.K3.FIN.GL.Common.Core">
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.Common.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Kingdee.K3.FIN.ServiceHelper, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.ServiceHelper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -77,6 +97,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnyBankDailyReportFilter.cs" />
+    <Compile Include="AnyBankDetail.cs" />
+    <Compile Include="AnyBankDetailRepot.cs" />
     <Compile Include="AnySaleProfitReport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
