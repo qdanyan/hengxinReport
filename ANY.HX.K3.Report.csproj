@@ -84,6 +84,14 @@
     <Reference Include="Kingdee.K3.FIN.GL.Common.Core">
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.Common.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Kingdee.K3.FIN.GL.Report.PlugIn, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.Report.PlugIn.dll</HintPath>
+    </Reference>
+    <Reference Include="Kingdee.K3.FIN.GL.ServiceHelper, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.GL.ServiceHelper.dll</HintPath>
+    </Reference>
     <Reference Include="Kingdee.K3.FIN.ServiceHelper, Version=7.6.2003.9, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\K3cloud7.6\WebSite\bin\Kingdee.K3.FIN.ServiceHelper.dll</HintPath>
@@ -100,6 +108,7 @@
     <Compile Include="AnyBankDailyReportFilter.cs" />
     <Compile Include="AnyBankDetail.cs" />
     <Compile Include="AnyBankDetailRepot.cs" />
+    <Compile Include="AnySaleProfitFilter.cs" />
     <Compile Include="AnySaleProfitReport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
