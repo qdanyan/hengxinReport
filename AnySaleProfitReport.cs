@@ -39,9 +39,11 @@ namespace ANY.HX.K3.Report
 
         private string year;
         private string period;
-        private string currency;
+        private int currency;
         private string currencyCondition;
         private string detail;
+        private string fromDate;
+        private string toDate;
         private int saleSeq=0;
         private int customerSeq=0;
         private int deptSeq=0;
@@ -68,17 +70,34 @@ namespace ANY.HX.K3.Report
                 {
                     result = new ReportTitles();
                 }
+                int currencyId = Convert.ToInt32(dyFilter["F_ANY_Currency"]);
                 //设置报表title
                 result.AddTitle("F_ANY_Date", Convert.ToString(dyFilter["F_ANY_Date"]));
+                result.AddTitle("F_ANY_EndDate", Convert.ToString(dyFilter["F_ANY_EndDate"]));
+                result.AddTitle("FCURRENCYID", GetCurrencyName(currencyId));
+
             }
             return result;
         }
 
+        private string GetCurrencyName(long currencyId)
+        {
+            return BillPlugInBaseFun.GetSpecialCyName(base.Context, currencyId);
+        }
 
         private void InitFilter(DynamicObject param)
         {
-            string currency = Convert.ToString(param["F_ANY_Currency"]);
+            string currencyStr = Convert.ToString(param["F_ANY_Currency"]);
+            if (!string.IsNullOrEmpty(currencyStr))
+            {
+                currency = Convert.ToInt32(currencyStr);
+            }
+            else
+            {
+                currency = 0;
+            }
             DateTime fDate = Convert.ToDateTime(param["F_ANY_Date"]);
+            DateTime fDateEnd = Convert.ToDateTime(param["F_ANY_EndDate"]);
             DynamicObject detailObject = param["F_ANY_Detail"] as DynamicObject;
             detail = Convert.ToString(detailObject["Name"]);
             notPostVercher = Convert.ToBoolean(param["F_ANY_NOTPOSTVOUCHER"]);
@@ -93,9 +112,11 @@ namespace ANY.HX.K3.Report
 
             year = fDate.Year.ToString();
             period = fDate.Month.ToString();
-            if (currency == "RMB")
+            fromDate = fDate.ToString("yyyy-MM-dd");
+            toDate = fDateEnd.ToString("yyyy-MM-dd");
+            if (currency > 0)
             {
-                currencyCondition = " AND I.FCURRENCYID = 1";
+                currencyCondition = string.Format(" AND I.FCURRENCYID = {0}", currency);
             }
             else
             {
@@ -136,10 +157,10 @@ namespace ANY.HX.K3.Report
                     LEFT JOIN T_BD_EXPENSE_L E ON ( E.FEXPID= F.FFLEX9 AND E.FLOCALEID= 2052 )
 	                LEFT JOIN T_BD_ACCOUNT_L A ON ( A.FACCTID= I.FACCOUNTID AND A.FLOCALEID= 2052 )
                 WHERE
-	                FYEAR = {1} 
-	                AND FPERIOD = {2} 
+                    FDATE >= '{1}' 
+                    AND FDATE <= '{2}'
 	                AND FACCOUNTID IN ( 4075, 4080, 4083, 148657 ) {3}
-                GROUP BY A.FNAME, I.FACCOUNTID, C.FNAME, H.FNAME, D.FNAME,E.FNAME", tableName, year, period, addcOnditions);
+                GROUP BY A.FNAME, I.FACCOUNTID, C.FNAME, H.FNAME, D.FNAME,E.FNAME", tableName, fromDate, toDate, addcOnditions);
 
             DBUtils.ExecuteDynamicObject(this.Context, strCreateTable);
 
