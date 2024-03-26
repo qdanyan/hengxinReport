@@ -70,14 +70,20 @@ namespace ANY.HX.K3.Report
                 {
                     result = new ReportTitles();
                 }
+                int currencyId = Convert.ToInt32(dyFilter["F_ANY_Currency"]);
                 //设置报表title
                 result.AddTitle("F_ANY_Date", Convert.ToString(dyFilter["F_ANY_Date"]));
                 result.AddTitle("F_ANY_EndDate", Convert.ToString(dyFilter["F_ANY_EndDate"]));
+                result.AddTitle("FCURRENCYID", GetCurrencyName(currencyId));
 
             }
             return result;
         }
 
+        private string GetCurrencyName(long currencyId)
+        {
+            return BillPlugInBaseFun.GetSpecialCyName(base.Context, currencyId);
+        }
 
         private void InitFilter(DynamicObject param)
         {
